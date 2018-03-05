@@ -6,29 +6,27 @@
 #include "chlib_k.h"
 #include "encoder.h"
 
-#define SERVO_CENTER 778 // 舵机直行中心值
-#define SERVO_LIMITS 180 // 舵机行程限制值
+#define SERVO_CENTER 778                            // 舵机直行中心值
+#define SERVO_LIMITS 180                            // 舵机行程限制值
 
-#define SERVO_Kp 6     // 舵机比例
-#define SERVO_Ki 0.005 // 舵机积分
-#define SERVO_Kd 10    // 舵机微分
+#define SERVO_Kp 6                                  // 舵机比例
+#define SERVO_Ki 0                                  // 舵机积分
+#define SERVO_Kd 10                                 // 舵机微分
 
-#define MOTOR_MAX_SPEED 1000 // 电机最大速度
-#define MOTOR_LMT_SPEED 400  // 电机行程速度
+#define MOTOR_Kp 30                                 // 电机比例
+#define MOTOR_Ki 0                                  // 电机积分
+#define MOTOR_Kd 0                                  // 电机微分
 
-#define MOTOR_Kp 30    // 电机比例
-#define MOTOR_Ki 0     // 电机积分
-#define MOTOR_Kd 0     // 电机微分
+#define IMAGE_ROW_MIN 16                            // 图像处理行最小
+#define IMAGE_ROW_MAX 50                            // 图像处理行最大
 
-typedef union PID_PWM_UNION{
-    float   float32bits;
-    uint8_t int8bits[4];
-} PID_PWM_UNION;
+#define SPEED_MAX 2000
+#define SPEED_MID 1500
+#define SPEED_MIN 1000
 
-extern float cur_error; // 当前误差
-extern float pre_error; // 上次误差
-extern float sum_error; // 累加误差
+extern uint32_t w[50];                              // 计算各个中线偏差的权重
 
-void PID_Controller(void); // PID控制函数
+void PID_Controller(void);                          // PID控制函数
+void PID_UART_Tx_Oscillometer(uint32_t instance);   // PID结果显示
 
 #endif

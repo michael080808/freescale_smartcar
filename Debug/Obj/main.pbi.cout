@@ -1,34 +1,34 @@
-"C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\User\main.c"
+"C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\User\main.c"
 -std=c99
 -ferror-limit=100
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Camera\inc
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Camera\inc
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Core
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Core
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Device
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Device
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Driver\inc
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Driver\inc
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\User
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\User
 -I
-D:\IAR Systems\Embedded Workbench 7.0\arm\CMSIS\Include
+D:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\arm\CMSIS\Include
 -I
-D:\IAR Systems\Embedded Workbench 7.0\arm\inc
+D:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\arm\inc
 -I
-D:\IAR Systems\Embedded Workbench 7.0\arm\inc\c
+D:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\arm\inc\c
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Camera\inc
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Camera\inc
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Core
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Core
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Device
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Device
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Driver\inc
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\Libraries\Driver\inc
 -I
-C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\User
+C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\User
 -I
-D:\IAR Systems\Embedded Workbench 7.0\arm\CMSIS\Include
+D:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\arm\CMSIS\Include
 -DMK60D10=1
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=0xff
@@ -222,8 +222,8 @@ D:\IAR Systems\Embedded Workbench 7.0\arm\CMSIS\Include
 -D__HAS_LOCATED_DECLARATION__=1
 -D__HAS_LOCATED_WITH_INIT__=1
 -D__IAR_COMPILERBASE__=593924
--D__DATE__="Mar  3 2018"
--D__TIME__="22:48:08"
+-D__DATE__="Mar  5 2018"
+-D__TIME__="15:31:34"
 -D__STDC__=1
 -D__STDC_VERSION__=199901L
 -D__STDC_HOSTED__=1
@@ -248,8 +248,8 @@ D:\IAR Systems\Embedded Workbench 7.0\arm\CMSIS\Include
 -D__EDG_SYSV=0
 -D__EDG_ANSIC=1
 -D__EDG_CPP0X_IL_EXTENSIONS_SUPPORTED=1
--D_DLIB_CONFIG_FILE_HEADER_NAME="D:\IAR Systems\Embedded Workbench 7.0\arm\INC\c\DLib_Config_Full.h"
--D_DLIB_CONFIG_FILE_STRING="D:\\IAR Systems\\Embedded Workbench 7.0\\arm\\INC\\c\\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_HEADER_NAME="D:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\arm\INC\c\DLib_Config_Full.h"
+-D_DLIB_CONFIG_FILE_STRING="D:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\arm\\INC\\c\\DLib_Config_Full.h"
 -D__VERSION__="IAR ANSI C/C++ Compiler V7.20.2.7424/W32 for ARM"
 -D_VA_DEFINED=
 -D__CODE_MEMORY_LIST1__()=__CODE_MEM_HELPER1__(__code, 0 )

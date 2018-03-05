@@ -97,8 +97,8 @@ void CAMERA_Init(void)
 
 void CAMERA_Processing(void)
 {
-    int16_t lp1, lp2;        //第0行时，lp1,lp2从上一次的线的第零行开始扫描
-    int16_t lp3, lp4;        //
+    int16_t l1, l2;          //左边线两沿
+    int16_t r1, r2;          //右边线两沿
     uint8_t cur_row = 0;     //指向当前的处理的行
     uint8_t pre_row = 0;     //指向上一个处理的行
     uint8_t is_l_edge = 0;   //是否看到左边界
@@ -107,56 +107,55 @@ void CAMERA_Processing(void)
     uint8_t r_black_cnt = 0; //记录右边出现几个黑点
     uint8_t row_l_edge;      //记录当前行的左边界
     uint8_t row_r_edge;      //记录当前行的右边界
-    uint8_t *p;              //
-    uint8_t i = 0, j = 0;    //
-    uint8_t xx = 0;          //
+    uint8_t *p;              //图像的像素指针
+    uint8_t i = 0, j = 0;    //数组下标与临时变量
 
     PCout(18) = 1; // 开始处理，LED点亮
 
     // 对于当前图像，赛道远端左侧是坐标原点
     
     // 扫描左边界线
-    if (l_line_index[0] != CAMERA_COL && l_line_index[0] != 0)     //前十五行有非空左线起点
+    if (l_line_index[0] != CAMERA_COL)     //前十五行有非空左线起点
     {
-        lp1 = (l_line_index[0] > 1 + offset[0]) ? l_line_index[0] - offset[0] : 1;
-        lp2 = lp1 + P_WIDTH;
+        l1 = (l_line_index[0] > 1 + offset[0]) ? l_line_index[0] - offset[0] : 1;
+        l2 = l1 + P_WIDTH;
     }
     else  //前一半都没有找到参考值
     {
         if (r_line_index[0] != 0 && 0 < 15)
         {
-            lp1 = ((int16_t)((int16_t)r_line_index[0] + (int16_t)offset[0])>CAMERA_COL - P_WIDTH - 10) ? CAMERA_COL - P_WIDTH - 10 : r_line_index[0] + offset[0];
-            lp2 = lp1 + P_WIDTH;
+            l1 = ((int16_t)((int16_t)r_line_index[0] + (int16_t)offset[0])>CAMERA_COL - P_WIDTH - 10) ? CAMERA_COL - P_WIDTH - 10 : r_line_index[0] + offset[0];
+            l2 = l1 + P_WIDTH;
         }
         else
         {
-            lp1 = CAMERA_CENTER;
-            lp2 = lp1 + P_WIDTH;
+            l1 = CAMERA_CENTER;
+            l2 = l1 + P_WIDTH;
         }
     }
 
     // 扫描右边界线
-    if (r_line_index[0] != 0 && 0<15)
+    if (r_line_index[0] != 0)
     {
-        lp3 = ((int16_t)((int16_t)r_line_index[0] + (int16_t)offset[0])<CAMERA_COL - P_WIDTH - 5) ? r_line_index[0] + offset[0] : CAMERA_COL - P_WIDTH - 5;
-        lp4 = lp3 + P_WIDTH;
+        r1 = ((int16_t)((int16_t)r_line_index[0] + (int16_t)offset[0])<CAMERA_COL - P_WIDTH - 5) ? r_line_index[0] + offset[0] : CAMERA_COL - P_WIDTH - 5;
+        r2 = r1 + P_WIDTH;
     }
-    else  //如果前面一直没有找到边，那么就依照找到的左线的位置推测lp1,lp2位置
+    else  //如果前面一直没有找到边，那么就依照找到的左线的位置推测l1,l2位置
     {
         if (l_line_index[0] != CAMERA_COL&&0<15)
         {
-            lp3 = (l_line_index[0]>5 + offset[0]) ? l_line_index[0] - offset[0] : 5;
-            lp4 = lp3 + P_WIDTH;
+            r1 = (l_line_index[0]>5 + offset[0]) ? l_line_index[0] - offset[0] : 5;
+            r2 = r1 + P_WIDTH;
         }
         else
         {
-            lp3 = CAMERA_CENTER;
-            lp4 = lp3 + P_WIDTH;
+            r1 = CAMERA_CENTER;
+            r2 = r1 + P_WIDTH;
         }
     }
 
     // 
-    for (cur_row = 0; cur_row<CAMERA_ROW; cur_row++)
+    for (cur_row = 0; cur_row < CAMERA_ROW; cur_row++)
     {
         p = imgaddr + cur_row * CAMERA_COL;                                                            //指向当前行
 
@@ -171,27 +170,27 @@ void CAMERA_Processing(void)
             {
                 if (l_line_index[pre_row]>offset[pre_row])
                     if (r_line_index[cur_row - 1] != 0 && l_line_index[pre_row] - offset[pre_row]<r_line_index[cur_row - 1] + 5)            //如果扫线开始点在上一行右线的右边 则以上一行的右线作为扫线开始
-                        lp1 = r_line_index[cur_row - 1] + 5;
+                        l1 = r_line_index[cur_row - 1] + 5;
                     else
-                        lp1 = l_line_index[pre_row]-(offset[pre_row]/3);                                        //需修改
+                        l1 = l_line_index[pre_row]-(offset[pre_row]/3);                                        //需修改
                 else
                     if (r_line_index[cur_row - 1] != 0 && r_line_index[cur_row - 1] + 5<CAMERA_COL - P_WIDTH)
-                        lp1 = r_line_index[cur_row - 1] + 5;
+                        l1 = r_line_index[cur_row - 1] + 5;
                     else
-                        lp1 = 1;
-                lp2 = lp1 + P_WIDTH;
+                        l1 = 1;
+                l2 = l1 + P_WIDTH;
             }
             else                                             //前面一直无可搜寻到的左线 
             {
                 if (r_line_index[cur_row - 1] != 0)                  //那么如果第零行是用右线确定的，则用右线的推出来值
                 {
-                    lp1 = ((int16_t)((int16_t)r_line_index[cur_row - 1] + 5)>CAMERA_COL - P_WIDTH - 10) ? CAMERA_COL - P_WIDTH - 10 : r_line_index[cur_row - 1] + 5;
-                    lp2 = lp1 + P_WIDTH;
+                    l1 = ((int16_t)((int16_t)r_line_index[cur_row - 1] + 5)>CAMERA_COL - P_WIDTH - 10) ? CAMERA_COL - P_WIDTH - 10 : r_line_index[cur_row - 1] + 5;
+                    l2 = l1 + P_WIDTH;
                 }
                 else
                 {
-                    lp1 = CAMERA_CENTER;
-                    lp2 = lp1 + P_WIDTH;
+                    l1 = CAMERA_CENTER;
+                    l2 = l1 + P_WIDTH;
                 }
             }
             
@@ -204,61 +203,61 @@ void CAMERA_Processing(void)
             {
                 if ((int16_t)((int16_t)r_line_index[pre_row] + (int16_t)offset[pre_row])<CAMERA_COL - P_WIDTH - 5)
                     if (l_line_index[cur_row - 1] != CAMERA_COL && (int16_t)(r_line_index[pre_row] + offset[pre_row])>(int16_t)(l_line_index[cur_row - 1] - P_WIDTH - 5))              //如果扫线开始点在上一行左线的左边 则以上一行的左线作为扫线开始
-                        lp3 = l_line_index[cur_row - 1] - P_WIDTH - 5;
+                        r1 = l_line_index[cur_row - 1] - P_WIDTH - 5;
                     else
-                        lp3 = r_line_index[pre_row];                                        //需修改
+                        r1 = r_line_index[pre_row];                                        //需修改
                 else
                     if (l_line_index[cur_row - 1] == CAMERA_COL)
-                        lp3 = CAMERA_COL - P_WIDTH - 5;
+                        r1 = CAMERA_COL - P_WIDTH - 5;
                     else if (l_line_index[cur_row - 1]>5 + P_WIDTH)
-                        lp3 = l_line_index[cur_row - 1] - P_WIDTH - 5;
+                        r1 = l_line_index[cur_row - 1] - P_WIDTH - 5;
                     else 
-                        lp3 = CAMERA_CENTER;
-                lp4 = lp3 + P_WIDTH;
+                        r1 = CAMERA_CENTER;
+                r2 = r1 + P_WIDTH;
             }
             else //之前一直没有找到右线
             {
-                if (l_line_index[cur_row - 1] != CAMERA_COL)//按照本行左线的位置 确定lp1 lp2
+                if (l_line_index[cur_row - 1] != CAMERA_COL)//按照本行左线的位置 确定l1 l2
                 {
-                    lp3 = ((int16_t)(l_line_index[cur_row - 1]>5 + P_WIDTH + 5)) ? l_line_index[cur_row - 1] - P_WIDTH - 5 : 5;
-                    lp4 = lp3 + P_WIDTH;
+                    r1 = ((int16_t)(l_line_index[cur_row - 1]>5 + P_WIDTH + 5)) ? l_line_index[cur_row - 1] - P_WIDTH - 5 : 5;
+                    r2 = r1 + P_WIDTH;
                 }
                 else
                 { //本行左线没有
-                    lp3 = CAMERA_CENTER;
-                    lp4 = lp3 + P_WIDTH;
+                    r1 = CAMERA_CENTER;
+                    r2 = r1 + P_WIDTH;
                 }
             }
             //左右线扫线开始
         }
 
-        if (lp3>0) //找左右边界
+        if (r1 > 0) //找左右边界
         {
             //------找线右边界-------------------
-            while (lp3>0 && !is_r_edge)
+            while (r1 > 0 && !is_r_edge)
             {
-                if ((int16_t)(*(p + lp4))>BW_DELTA + (int16_t)*(p + lp3))     //利用有符号的来消除噪点
+                if ((int16_t)(*(p + r2))>BW_DELTA + (int16_t)*(p + r1))     //利用有符号的来消除噪点
                 {
-                    while ((int16_t)(*(p + lp4))>BW_DELTA + (int16_t)*(p + lp3) && lp3>0)
+                    while ((int16_t)(*(p + r2))>BW_DELTA + (int16_t)*(p + r1) && r1>0)
                     {
-                        if ((int16_t)(*(p + lp4))<255)
+                        if ((int16_t)(*(p + r2))<255)
                             r_black_cnt++;
-                        lp3--;
-                        lp4--;
+                        r1--;
+                        r2--;
                         if (r_black_cnt >= LINE_EDGE)
                             break;
                     }
                     if (r_black_cnt >= LINE_EDGE) //判断找到黑线
                     {
-                        row_r_edge = lp3 + LINE_EDGE;
+                        row_r_edge = r1 + LINE_EDGE;
                         r_black_cnt = 0;
 
-                        xx = 0;
+                        j = 0;
                         for (i = 0; i < 10; i++)
-                            if (*(p + lp3 + LINE_EDGE + i) > THRESHOLD)
-                        xx++;
+                            if (*(p + r1 + LINE_EDGE + i) > THRESHOLD)
+                        j++;
                         
-                        if (xx > 6)
+                        if (j > 6)
                             is_r_edge = 1;
                         else
                             r_black_cnt = 0;
@@ -268,38 +267,38 @@ void CAMERA_Processing(void)
                 }
                 else
                 {
-                    lp3--;
-                    lp4--;
+                    r1--;
+                    r2--;
                 }
             }
         }
           
-        if (lp2 < CAMERA_COL)                    //找左右边界,从内向外扫描
+        if (l2 < CAMERA_COL)                    //找左右边界,从内向外扫描
         {
                   //------找线左边界-------------------
-            while (lp2<CAMERA_COL && !is_l_edge)        //当lp2没有到达列的最大值继续扫描，右扫描模式
+            while (l2 < CAMERA_COL && !is_l_edge)        //当l2没有到达列的最大值继续扫描，右扫描模式
             {
-                if (((int16_t)(*(p + lp1)))>BW_DELTA + (int16_t)*(p + lp2))           // 
+                if (((int16_t)(*(p + l1)))>BW_DELTA + (int16_t)*(p + l2))           // 
                 {
-                    while ((int16_t)(*(p + lp1))>BW_DELTA + (int16_t)*(p + lp2) && lp2<CAMERA_COL)
+                    while ((int16_t)(*(p + l1))>BW_DELTA + (int16_t)*(p + l2) && l2<CAMERA_COL)
                     {
-                        if ((int16_t)(*(p + lp1))<255)l_black_cnt++;
-                        lp1++;
-                        lp2++;
+                        if ((int16_t)(*(p + l1))<255)l_black_cnt++;
+                        l1++;
+                        l2++;
                         if (l_black_cnt >= LINE_EDGE)break;
                     }
                     
-                    if (l_black_cnt >= LINE_EDGE)           //找到左边界退出循环，lp1和lp2间隔设为1,                       
+                    if (l_black_cnt >= LINE_EDGE)           //找到左边界退出循环，l1和l2间隔设为1,                       
                     {
-                        row_l_edge = lp2 - LINE_EDGE;
+                        row_l_edge = l2 - LINE_EDGE;
                         l_black_cnt = 0;
 
-                        xx = 0;
+                        j = 0;
                         for (j = 0; j < 10; j++)
-                            if (*(p + lp2 - LINE_EDGE - j)>THRESHOLD)
-                                xx++;
+                            if (*(p + l2 - LINE_EDGE - j)>THRESHOLD)
+                                j++;
 
-                        if (xx>6)
+                        if (j>6)
                             is_l_edge = 1;
                         else
                             l_black_cnt = 0;
@@ -309,8 +308,8 @@ void CAMERA_Processing(void)
                 }
                 else
                 {
-                    lp1++;
-                    lp2++;
+                    l1++;
+                    l2++;
                 }
             }
         }
