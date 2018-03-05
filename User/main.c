@@ -22,7 +22,7 @@ int main()
     CAMERA_Init(); // 摄像头初始化 
     ENCODER_Init(kQD_PHABEncoding, 10000); // 编码器初始化
     FTM_PWM_QuickInit(FTM2_CH0_PB18, kPWM_EdgeAligned, 50, 750); // 舵机初始化 
-    FTM_PWM_QuickInit(FTM0_CH7_PD07, kPWM_EdgeAligned, 1000, 0); // 电机初始化
+    FTM_PWM_QuickInit(FTM0_CH7_PD07, kPWM_EdgeAligned, 100,  0); // 电机初始化
     EnableInterrupts; // 初始化完成开启全局中断
 
     while(true)
@@ -31,6 +31,6 @@ int main()
         CAMERA_Display_Full();
         PID_Controller();
         ENCODER_Display_Speed();
-        ENCODER_UART_TX_Speed(HW_UART3);
+        PID_UART_Tx_Oscillometer(HW_UART3);
     }
 }

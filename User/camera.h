@@ -6,37 +6,37 @@
 #include "sccbext.h"
 #include "chlib_k.h"
 
-#define CAMERA_ROW    50                            //ÉãÏñÍ·²É¼¯ĞĞÊı
-#define CAMERA_COL    152                           //ÉãÏñÍ·²É¼¯ÁĞÊı
-#define CAMERA_CENTER 80                            //ÉãÏñÍ·²É¼¯ÖĞĞÄÖµ
+#define CAMERA_ROW    50                            //æ‘„åƒå¤´é‡‡é›†è¡Œæ•°
+#define CAMERA_COL    152                           //æ‘„åƒå¤´é‡‡é›†åˆ—æ•°
+#define CAMERA_CENTER 80                            //æ‘„åƒå¤´é‡‡é›†ä¸­å¿ƒå€¼
 
-#define P_WIDTH       8                             //ºÚÏß¿í¶È
-#define BW_DELTA      50                            //°×É«¿í¶È
-#define THRESHOLD     110                           //ÉãÏñÍ·ãĞÖµ
-#define LINE_EDGE     2                             //Ïß±ß½ç
-#define BLOCK_LEN     20                            //¿é³¤¶È
+#define P_WIDTH       8                             //é»‘çº¿å®½åº¦
+#define BW_DELTA      50                            //ç™½è‰²å®½åº¦
+#define THRESHOLD     130                           //æ‘„åƒå¤´é˜ˆå€¼
+#define LINE_EDGE     2                             //çº¿è¾¹ç•Œ
+#define BLOCK_LEN     20                            //å—é•¿åº¦
 
 extern uint8_t  image;  
-extern uint16_t H_Cnt;                              //¼ÇÂ¼ĞĞÖĞ¶ÏÊı
-extern uint32_t V_Cnt;                              //¼ÇÂ¼³¡ÖĞ¶Ï´ÎÊı
+extern uint16_t H_Cnt;                              //è®°å½•è¡Œä¸­æ–­æ•°
+extern uint32_t V_Cnt;                              //è®°å½•åœºä¸­æ–­æ¬¡æ•°
 
-extern uint8_t  image;                              //±ê¶¨ÆæÅ¼³¡
-//imageÎª0, ±íÊ¾ÕıÔÚ´¦Àíimg1, DMA½ÓÊÕ´æ´¢ÔÚimg2
-//imageÎª1, ±íÊ¾ÕıÔÚ´¦Àíimg2, DMA½ÓÊÕ´æ´¢ÔÚimg1
-extern uint8_t  img1[CAMERA_ROW][CAMERA_COL];       //ÆæÊı³¡´æ´¢Î»ÖÃ
-extern uint8_t  img2[CAMERA_ROW][CAMERA_COL];       //Å¼Êı³¡´æ´¢Î»ÖÃ
-extern uint8_t *imgaddr;                            //µ±Ç°´ı´¦Àí³¡ÆğÊ¼µØÖ·
+extern uint8_t  image;                              //æ ‡å®šå¥‡å¶åœº
+//imageä¸º0, è¡¨ç¤ºæ­£åœ¨å¤„ç†img1, DMAæ¥æ”¶å­˜å‚¨åœ¨img2
+//imageä¸º1, è¡¨ç¤ºæ­£åœ¨å¤„ç†img2, DMAæ¥æ”¶å­˜å‚¨åœ¨img1
+extern uint8_t  img1[CAMERA_ROW][CAMERA_COL];       //å¥‡æ•°åœºå­˜å‚¨ä½ç½®
+extern uint8_t  img2[CAMERA_ROW][CAMERA_COL];       //å¶æ•°åœºå­˜å‚¨ä½ç½®
+extern uint8_t *imgaddr;                            //å½“å‰å¾…å¤„ç†åœºèµ·å§‹åœ°å€
 
-extern uint8_t  l_line_index[CAMERA_ROW];           //×óÒıµ¼ÏßÁĞºÅ
-extern uint8_t  r_line_index[CAMERA_ROW];           //ÓÒÒıµ¼ÏßÁĞºÅ
+extern uint8_t  l_line_index[CAMERA_ROW];           //å·¦å¼•å¯¼çº¿åˆ—å·
+extern uint8_t  r_line_index[CAMERA_ROW];           //å³å¼•å¯¼çº¿åˆ—å·
 
-extern const uint8_t offset[];                      //Ã¿Ò»ĞĞµÄlp1,lp2É¨ÃèÆ«ÒÆÁ¿
+extern const uint8_t offset[];                      //æ¯ä¸€è¡Œçš„lp1,lp2æ‰«æåç§»é‡
 
-void CAMERA_Init(void);                             //Í¼Ïñ³õÊ¼»¯
-void CAMERA_Processing(void);                       //Í¼ÏñÊ¶±ğ´¦Àíº¯Êı
-void CAMERA_Display_Full(void);                     //ÏÔÊ¾ÍêÕûÍ¼Ïñµ½OLED
-void CAMERA_Display_Edge(void);                     //ÏÔÊ¾±ß½çÍ¼Ïñµ½OLED
-void CAMERA_UART_TX_Full(const uint32_t instance);  //ÍêÕûÍ¼Ïñ»Ò¶È´®¿Ú·¢sËÍ
-void CAMERA_UART_TX_Edge(const uint32_t instance);  //±ß½çÍ¼Ïñ»Ò¶È´®¿Ú·¢ËÍ
+void CAMERA_Init(void);                             //å›¾åƒåˆå§‹åŒ–
+void CAMERA_Processing(void);                       //å›¾åƒè¯†åˆ«å¤„ç†å‡½æ•°
+void CAMERA_Display_Full(void);                     //æ˜¾ç¤ºå®Œæ•´å›¾åƒåˆ°OLED
+void CAMERA_Display_Edge(void);                     //æ˜¾ç¤ºè¾¹ç•Œå›¾åƒåˆ°OLED
+void CAMERA_UART_TX_Full(const uint32_t instance);  //å®Œæ•´å›¾åƒç°åº¦ä¸²å£å‘sé€
+void CAMERA_UART_TX_Edge(const uint32_t instance);  //è¾¹ç•Œå›¾åƒç°åº¦ä¸²å£å‘é€
 
 #endif

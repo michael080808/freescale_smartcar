@@ -1,6 +1,7 @@
 #ifndef __ENCODER_H__
 #define __ENCODER_H__
 
+#include "pid.h"
 #include "oled.h"
 #include "sccbext.h"
 #include "chlib_k.h"
