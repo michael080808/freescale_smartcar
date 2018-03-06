@@ -12,7 +12,7 @@
 
 #define P_WIDTH       8                             //黑线宽度
 #define BW_DELTA      50                            //白色宽度
-#define THRESHOLD     130                           //摄像头阈值
+#define THRESHOLD     110                           //摄像头阈值
 #define LINE_EDGE     2                             //线边界
 #define BLOCK_LEN     20                            //块长度
 
@@ -25,10 +25,10 @@ extern uint8_t  image;                              //标定奇偶场
 //image为1, 表示正在处理img2, DMA接收存储在img1
 extern uint8_t  img1[CAMERA_ROW][CAMERA_COL];       //奇数场存储位置
 extern uint8_t  img2[CAMERA_ROW][CAMERA_COL];       //偶数场存储位置
-extern uint8_t *imgaddr;                            //当前待处理场起始地址
+extern uint8_t *imgadd;                            //当前待处理场起始地址
 
-extern uint8_t  l_line_index[CAMERA_ROW];           //左引导线列号
-extern uint8_t  r_line_index[CAMERA_ROW];           //右引导线列号
+extern uint8_t Lx[CAMERA_ROW];                 //左引导线中心点列号
+extern uint8_t Rx[CAMERA_ROW];                 //右引导线列号
 
 extern const uint8_t offset[];                      //每一行的lp1,lp2扫描偏移量
 

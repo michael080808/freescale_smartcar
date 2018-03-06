@@ -13,18 +13,18 @@
 #define SERVO_Ki 0                                  // 舵机积分
 #define SERVO_Kd -2.5                               // 舵机微分
 
-#define MOTOR_Kp 1                                  // 电机比例
+#define MOTOR_Kp 0.85                               // 电机比例
 #define MOTOR_Ki 0                                  // 电机积分
 #define MOTOR_Kd 0                                  // 电机微分
 
 #define IMAGE_ROW_MIN 16                            // 图像处理行最小
 #define IMAGE_ROW_MAX 50                            // 图像处理行最大
 
-#define SPEED_MAX 2000                              // 最大编码器脉冲
-#define SPEED_MID 1000                              // 居中编码器脉冲
-#define SPEED_MIN 800                               // 最小编码器脉冲
+#define SPEED_MAX 20                                // 最大编码器脉冲
+#define SPEED_MID 15                                // 居中编码器脉冲
+#define SPEED_MIN 10                                // 最小编码器脉冲
 
-#define MAX_PWM 1000                                // 限制最大PWM脉冲宽度
+#define MAX_PWM 2000                                // 限制最大PWM脉冲宽度
 
 extern uint32_t w[50];                              // 计算各个中线偏差的权重
 
