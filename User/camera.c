@@ -1,354 +1,400 @@
 #include "camera.h"
 
-uint16_t H_Cnt = 0;                     //è®°å½•è¡Œä¸­æ–­æ•°
-uint32_t V_Cnt = 0;                     //è®°å½•åœºä¸­æ–­æ¬¡æ•°
+uint16_t H_Cnt=0;                     //¼ÇÂ¼ĞĞÖĞ¶ÏÊı
+uint32_t V_Cnt=0;                     //¼ÇÂ¼³¡ÖĞ¶Ï´ÎÊı
 
-uint8_t image = 0;                   //æ ‡å®šå¥‡å¶åœº
-//imageä¸º0, è¡¨ç¤ºæ­£åœ¨å¤„ç†img1, DMAæ¥æ”¶å­˜å‚¨åœ¨img2
-//imageä¸º1, è¡¨ç¤ºæ­£åœ¨å¤„ç†img2, DMAæ¥æ”¶å­˜å‚¨åœ¨img1
-uint8_t img1[CAMERA_ROW][CAMERA_COL];//å¥‡æ•°åœºå­˜å‚¨ä½ç½®
-uint8_t img2[CAMERA_ROW][CAMERA_COL];//å¶æ•°åœºå­˜å‚¨ä½ç½®
-uint8_t *imgadd;                     //å½“å‰å¾…å¤„ç†åœºèµ·å§‹åœ°å€
+uint8_t  image = 0;                   //±ê¶¨ÆæÅ¼³¡
+//imageÎª0, ±íÊ¾ÕıÔÚ´¦Àíimg1, DMA½ÓÊÕ´æ´¢ÔÚimg2
+//imageÎª1, ±íÊ¾ÕıÔÚ´¦Àíimg2, DMA½ÓÊÕ´æ´¢ÔÚimg1
+uint8_t  img1[CAMERA_ROW][CAMERA_COL];//ÆæÊı³¡´æ´¢Î»ÖÃ
+uint8_t  img2[CAMERA_ROW][CAMERA_COL];//Å¼Êı³¡´æ´¢Î»ÖÃ
+uint8_t *imgaddr;                     //µ±Ç°´ı´¦Àí³¡ÆğÊ¼µØÖ·
 
-uint8_t Lx[CAMERA_ROW];                       //å·¦å¼•å¯¼çº¿ä¸­å¿ƒç‚¹åˆ—å·
-uint8_t Rx[CAMERA_ROW];                      //å³å¼•å¯¼çº¿ä¸­å¿ƒç‚¹åˆ—å·
-uint8_t* L_Start;
-uint8_t* L_End;
-uint8_t* R_Start;
-uint8_t* R_End;
+uint8_t  l_line_index[CAMERA_ROW];    //×óÒıµ¼ÏßÁĞºÅ
+uint8_t  r_line_index[CAMERA_ROW];    //ÓÒÒıµ¼ÏßÁĞºÅ
 
-//æ¯ä¸€è¡Œçš„æ‰«æåç§»é‡
-const uint8_t offset[CAMERA_ROW] = {
-        40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-        40, 40, 40, 40, 40, 38, 38, 38, 38, 38,
-        35, 35, 35, 35, 35, 29, 28, 27, 25, 25,
-        24, 24, 24, 24, 23, 23, 23, 23, 22, 22,
-        22, 22, 21, 21, 21, 21, 21, 20, 20, 20,
+//Ã¿Ò»ĞĞµÄÉ¨ÃèÆ«ÒÆÁ¿
+const uint8_t offset[CAMERA_ROW]= {              
+  40,    40,    40,    40,    40,    40,    40,    40,    40,    40,
+  40,    40,    40,    40,    40,    38,    38,    38,    38,    38,
+  35,    35,    35,    35,    35,    29,    28,    27,    25,    25,
+  24,    24,    24,    24,    23,    23,    23,    23,    22,    22,
+  22,    22,    21,    21,    21,    21,    21,    20,    20,    20,
 };
 
-void CAMERA_Init(void) {
-    // æ‘„åƒå¤´çŠ¶æ€ç¯åˆå§‹åŒ–
-    GPIO_QuickInit(HW_GPIOE, 25, kGPIO_Mode_OPP);
-    // LED1åˆå§‹åŒ–ï¼ŒPORTE_25ï¼Œæ²¡äº®ä¸ºå¥‡æ•°åœºå¤„ç†ä¸­ï¼Œäº®ä¸ºå¶æ•°åœºå¤„ç†ä¸­
-    GPIO_QuickInit(HW_GPIOC, 18, kGPIO_Mode_OPP);
-    // LED2åˆå§‹åŒ–ï¼ŒPORTC_18ï¼Œäº®è¡¨ç¤ºæ­£åœ¨å¤„ç†å½“å‰å›¾åƒï¼Œä¸äº®è¡¨ç¤ºæ²¡æœ‰å¤„ç†å›¾åƒ
+void CAMERA_Init(void)
+{ 
+    // ÉãÏñÍ·×´Ì¬µÆ³õÊ¼»¯
+    GPIO_QuickInit(HW_GPIOE, 25, kGPIO_Mode_OPP);   
+    // LED1³õÊ¼»¯£¬PORTE_25£¬Ã»ÁÁÎªÆæÊı³¡´¦ÀíÖĞ£¬ÁÁÎªÅ¼Êı³¡´¦ÀíÖĞ
+    GPIO_QuickInit(HW_GPIOC, 18, kGPIO_Mode_OPP);   
+    // LED2³õÊ¼»¯£¬PORTC_18£¬ÁÁ±íÊ¾ÕıÔÚ´¦Àíµ±Ç°Í¼Ïñ£¬²»ÁÁ±íÊ¾Ã»ÓĞ´¦ÀíÍ¼Ïñ
 
-    //æ‘„åƒå¤´æ•°æ®å£ï¼Œä¸‹æ‹‰
-    GPIO_QuickInit(HW_GPIOC, 8, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C,  8ç«¯å£
-    GPIO_QuickInit(HW_GPIOC, 9, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C,  9ç«¯å£
-    GPIO_QuickInit(HW_GPIOC, 10, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C, 10ç«¯å£
-    GPIO_QuickInit(HW_GPIOC, 11, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C, 11ç«¯å£
-    GPIO_QuickInit(HW_GPIOC, 12, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C, 12ç«¯å£
-    GPIO_QuickInit(HW_GPIOC, 13, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C, 13ç«¯å£
-    GPIO_QuickInit(HW_GPIOC, 14, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C, 14ç«¯å£
-    GPIO_QuickInit(HW_GPIOC, 15, kGPIO_Mode_IPD); //åˆå§‹åŒ–PORT_C, 15ç«¯å£
-
-    //åœºä¸­æ–­
-    GPIO_QuickInit(HW_GPIOC, 6, kGPIO_Mode_IPD);  //åˆå§‹åŒ–PORT_C,  6ç«¯å£
-    GPIO_CallbackInstall(HW_GPIOC, CAMERA_Interrupt_Handler);     //æ³¨å†Œä¸­æ–­å‡½æ•°,  PORT_Cç»„è§¦å‘
-    GPIO_ITDMAConfig(HW_GPIOC, 6, kGPIO_IT_RisingEdge, false); //ä¸Šå‡æ²¿è§¦å‘ä¸­æ–­, æš‚æ—¶å…³é—­ä¸­æ–­
-
-    //è¡Œä¸­æ–­
-    GPIO_QuickInit(HW_GPIOC, 7, kGPIO_Mode_IPU);  //åˆå§‹åŒ–PORT_C,  7ç«¯å£
-    GPIO_CallbackInstall(HW_GPIOC, CAMERA_Interrupt_Handler);     //æ³¨å†Œä¸­æ–­å‡½æ•°,  PORT_Cç»„è§¦å‘
-    GPIO_ITDMAConfig(HW_GPIOC, 7, kGPIO_IT_RisingEdge, false); //ä¸Šå‡æ²¿è§¦å‘ä¸­æ–­, æš‚æ—¶å…³é—­ä¸­æ–­
-
-    //åƒç´ ç‚¹ä¸­æ–­
+    //ÉãÏñÍ·Êı¾İ¿Ú£¬ÏÂÀ­
+    GPIO_QuickInit(HW_GPIOC, 8,  kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C,  8¶Ë¿Ú
+    GPIO_QuickInit(HW_GPIOC, 9,  kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C,  9¶Ë¿Ú
+    GPIO_QuickInit(HW_GPIOC, 10, kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C, 10¶Ë¿Ú
+    GPIO_QuickInit(HW_GPIOC, 11, kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C, 11¶Ë¿Ú
+    GPIO_QuickInit(HW_GPIOC, 12, kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C, 12¶Ë¿Ú
+    GPIO_QuickInit(HW_GPIOC, 13, kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C, 13¶Ë¿Ú
+    GPIO_QuickInit(HW_GPIOC, 14, kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C, 14¶Ë¿Ú
+    GPIO_QuickInit(HW_GPIOC, 15, kGPIO_Mode_IPD); //³õÊ¼»¯PORT_C, 15¶Ë¿Ú
+    
+    //³¡ÖĞ¶Ï
+    GPIO_QuickInit(HW_GPIOC, 6, kGPIO_Mode_IPD);  //³õÊ¼»¯PORT_C,  6¶Ë¿Ú
+    GPIO_CallbackInstall(HW_GPIOC, CAMERA_Interrupt_Handler);     //×¢²áÖĞ¶Ïº¯Êı,  PORT_C×é´¥·¢
+    GPIO_ITDMAConfig(HW_GPIOC, 6, kGPIO_IT_RisingEdge,  false); //ÉÏÉıÑØ´¥·¢ÖĞ¶Ï, ÔİÊ±¹Ø±ÕÖĞ¶Ï
+    
+    //ĞĞÖĞ¶Ï
+    GPIO_QuickInit(HW_GPIOC, 7, kGPIO_Mode_IPU);  //³õÊ¼»¯PORT_C,  7¶Ë¿Ú
+    GPIO_CallbackInstall(HW_GPIOC, CAMERA_Interrupt_Handler);     //×¢²áÖĞ¶Ïº¯Êı,  PORT_C×é´¥·¢
+    GPIO_ITDMAConfig(HW_GPIOC, 7, kGPIO_IT_RisingEdge,  false); //ÉÏÉıÑØ´¥·¢ÖĞ¶Ï, ÔİÊ±¹Ø±ÕÖĞ¶Ï
+    
+    //ÏñËØµãÖĞ¶Ï
     GPIO_QuickInit(HW_GPIOC, 2, kGPIO_Mode_IPU);
-    GPIO_ITDMAConfig(HW_GPIOC, 2, kGPIO_DMA_RisingEdge, false); //ä¸Šå‡æ²¿è§¦å‘DMA,  æš‚æ—¶å…³é—­ä¸­æ–­
+    GPIO_ITDMAConfig(HW_GPIOC, 2, kGPIO_DMA_RisingEdge, false); //ÉÏÉıÑØ´¥·¢DMA,  ÔİÊ±¹Ø±ÕÖĞ¶Ï
+    
+    //DMA³õÊ¼»¯
+    DMA_InitTypeDef DMA_InitStruct1   = {0};
+    DMA_InitStruct1.chl               = HW_DMA_CH0;                   //DMAÍ¨µÀºÅ: 0
+    DMA_InitStruct1.chlTriggerSource  = PORTC_DMAREQ;                 //DMA´¥·¢Ô´Ñ¡Ôñ: GPIO_PORTC
+    DMA_InitStruct1.triggerSourceMode = kDMA_TriggerSource_Normal;    //DMA´¥·¢·½Ê½: Õı³£´¥·¢
+    DMA_InitStruct1.minorLoopByteCnt  = 1;                            //DMAÖÜÆÚ×Ö½ÚÊı: 1×Ö½Ú
+    DMA_InitStruct1.majorLoopCnt      = CAMERA_COL;                      //DMAÑ­»·²É¼¯Êı: 1ÏñËØĞĞ(152¸ö)
 
-    //DMAåˆå§‹åŒ–
-    DMA_InitTypeDef DMA_InitStruct1 = {0};
-    DMA_InitStruct1.chl = HW_DMA_CH0;                   //DMAé€šé“å·: 0
-    DMA_InitStruct1.chlTriggerSource = PORTC_DMAREQ;                 //DMAè§¦å‘æºé€‰æ‹©: GPIO_PORTC
-    DMA_InitStruct1.triggerSourceMode = kDMA_TriggerSource_Normal;    //DMAè§¦å‘æ–¹å¼: æ­£å¸¸è§¦å‘
-    DMA_InitStruct1.minorLoopByteCnt = 1;                            //DMAå‘¨æœŸå­—èŠ‚æ•°: 1å­—èŠ‚
-    DMA_InitStruct1.majorLoopCnt = CAMERA_COL;                      //DMAå¾ªç¯é‡‡é›†æ•°: 1åƒç´ è¡Œ(152ä¸ª)
+    DMA_InitStruct1.sAddr             = (uint32_t) &(PTC->PDIR) + 1;  //DMAÀ´Ô´µØÖ·: PTC8~15(PORT_CÆğÊ¼µØÖ·Æ«ÒÆÒ»¸ö×Ö½Ú)
+    DMA_InitStruct1.sLastAddrAdj      = 0;                            //DMAÀ´Ô´µØÖ·Ñ­»·ÍâÆ«ÒÆ: Ã¿´ÎÑ­»·ºóµÄÆ«ÒÆÁ¿
+    DMA_InitStruct1.sAddrOffset       = 0;                            //DMAÀ´Ô´µØÖ·Ñ­»·ÄÚÆ«ÒÆ: Ã¿¸öÖÜÆÚºóµÄÆ«ÒÆÁ¿
+    DMA_InitStruct1.sDataWidth        = kDMA_DataWidthBit_8;          //DMAÀ´Ô´Êı¾İ¿í¶È: 8Î»
+    DMA_InitStruct1.sMod              = kDMA_ModuloDisable;           //DMAÀ´Ô´ÄÚ´æ¿Õ¼äÄ£Êı: ÏŞÖÆÀ´Ô´µØÖ·ÆğÊ¼µÄÄÚ´æ¿Õ¼äÑ­»·´óĞ¡·¶Î§, ÓÃÓÚ·ÀÖ¹Ô½½ç, ²»ÉèÖÃ            
 
-    DMA_InitStruct1.sAddr = (uint32_t) &(PTC->PDIR) + 1;  //DMAæ¥æºåœ°å€: PTC8~15(PORT_Cèµ·å§‹åœ°å€åç§»ä¸€ä¸ªå­—èŠ‚)
-    DMA_InitStruct1.sLastAddrAdj = 0;                            //DMAæ¥æºåœ°å€å¾ªç¯å¤–åç§»: æ¯æ¬¡å¾ªç¯åçš„åç§»é‡
-    DMA_InitStruct1.sAddrOffset = 0;                            //DMAæ¥æºåœ°å€å¾ªç¯å†…åç§»: æ¯ä¸ªå‘¨æœŸåçš„åç§»é‡
-    DMA_InitStruct1.sDataWidth = kDMA_DataWidthBit_8;          //DMAæ¥æºæ•°æ®å®½åº¦: 8ä½
-    DMA_InitStruct1.sMod = kDMA_ModuloDisable;           //DMAæ¥æºå†…å­˜ç©ºé—´æ¨¡æ•°: é™åˆ¶æ¥æºåœ°å€èµ·å§‹çš„å†…å­˜ç©ºé—´å¾ªç¯å¤§å°èŒƒå›´, ç”¨äºé˜²æ­¢è¶Šç•Œ, ä¸è®¾ç½®
+    //DMA_InitStruct1.dAddr = (uint32_t)DestBuffer;                   //DMAÄ¿µÄµØÖ·: ÔİÊ±²»ÉèÖÃ, ÓÉ³¡ÖĞ¶Ï´¦Àíº¯ÊıÉèÖÃ
+    DMA_InitStruct1.dLastAddrAdj      = 0;                            //DMAÄ¿µÄµØÖ·Ñ­»·ÍâÆ«ÒÆ: Ã¿´ÎÑ­»·ºóµÄÆ«ÒÆÁ¿
+    DMA_InitStruct1.dAddrOffset       = 1;                            //DMAÄ¿µÄµØÖ·Ñ­»·ÄÚÆ«ÒÆ: Ã¿¸öÖÜÆÚºóµÄÆ«ÒÆÁ¿
+    DMA_InitStruct1.dDataWidth        = kDMA_DataWidthBit_8;          //DMAÄ¿µÄÊı¾İ¿í¶È: 8Î»
+    DMA_InitStruct1.dMod              = kDMA_ModuloDisable;           //DMAÄ¿µÄÄÚ´æ¿Õ¼äÄ£Êı: ÏŞÖÆÄ¿µÄµØÖ·ÆğÊ¼µÄÄÚ´æ¿Õ¼äÑ­»·´óĞ¡·¶Î§, ÓÃÓÚ·ÀÖ¹Ô½½ç, ²»ÉèÖÃ
+    
+    DMA_Init(&DMA_InitStruct1);                                       //Ó¦ÓÃDMAÍ¨µÀÉèÖÃ
+    DMA_DisableRequest(HW_DMA_CH0);                                   //ÏÈ¹Ø±ÕDMA´«Êä, ÔÚÖĞ¶Ï´¦Àíº¯ÊıÖĞ´¦Àí¿ª¹Ø
+    
+    GPIO_ITDMAConfig(HW_GPIOC, 6, kGPIO_IT_RisingEdge,  true);        //ÉÏÉıÑØ´¥·¢ÖĞ¶Ï, ¿ªÆôÖĞ¶Ï
+    GPIO_ITDMAConfig(HW_GPIOC, 7, kGPIO_IT_RisingEdge,  true);        //ÉÏÉıÑØ´¥·¢ÖĞ¶Ï, ¿ªÆôÖĞ¶Ï
+    GPIO_ITDMAConfig(HW_GPIOC, 2, kGPIO_DMA_RisingEdge, true);        //ÉÏÉıÑØ´¥·¢DMA, ¿ªÆôÖĞ¶Ï
 
-    //DMA_InitStruct1.dAddr = (uint32_t)DestBuffer;                   //DMAç›®çš„åœ°å€: æš‚æ—¶ä¸è®¾ç½®, ç”±åœºä¸­æ–­å¤„ç†å‡½æ•°è®¾ç½®
-    DMA_InitStruct1.dLastAddrAdj = 0;                            //DMAç›®çš„åœ°å€å¾ªç¯å¤–åç§»: æ¯æ¬¡å¾ªç¯åçš„åç§»é‡
-    DMA_InitStruct1.dAddrOffset = 1;                            //DMAç›®çš„åœ°å€å¾ªç¯å†…åç§»: æ¯ä¸ªå‘¨æœŸåçš„åç§»é‡
-    DMA_InitStruct1.dDataWidth = kDMA_DataWidthBit_8;          //DMAç›®çš„æ•°æ®å®½åº¦: 8ä½
-    DMA_InitStruct1.dMod = kDMA_ModuloDisable;           //DMAç›®çš„å†…å­˜ç©ºé—´æ¨¡æ•°: é™åˆ¶ç›®çš„åœ°å€èµ·å§‹çš„å†…å­˜ç©ºé—´å¾ªç¯å¤§å°èŒƒå›´, ç”¨äºé˜²æ­¢è¶Šç•Œ, ä¸è®¾ç½®
-
-    DMA_Init(&DMA_InitStruct1);                                       //åº”ç”¨DMAé€šé“è®¾ç½®
-    DMA_DisableRequest(HW_DMA_CH0);                                   //å…ˆå…³é—­DMAä¼ è¾“, åœ¨ä¸­æ–­å¤„ç†å‡½æ•°ä¸­å¤„ç†å¼€å…³
-
-    GPIO_ITDMAConfig(HW_GPIOC, 6, kGPIO_IT_RisingEdge, true);        //ä¸Šå‡æ²¿è§¦å‘ä¸­æ–­, å¼€å¯ä¸­æ–­
-    GPIO_ITDMAConfig(HW_GPIOC, 7, kGPIO_IT_RisingEdge, true);        //ä¸Šå‡æ²¿è§¦å‘ä¸­æ–­, å¼€å¯ä¸­æ–­
-    GPIO_ITDMAConfig(HW_GPIOC, 2, kGPIO_DMA_RisingEdge, true);        //ä¸Šå‡æ²¿è§¦å‘DMA, å¼€å¯ä¸­æ–­
-
-    //é…ç½®æ‘„åƒå¤´å¯„å­˜å™¨
+    //ÅäÖÃÉãÏñÍ·¼Ä´æÆ÷
     uint8_t i = 0;
     GPIO_QuickInit(HW_GPIOC, 0, kGPIO_Mode_OPP);
     GPIO_QuickInit(HW_GPIOC, 3, kGPIO_Mode_OPP);
-    while (i == 0)
-        i += LPLD_SCCB_WriteReg(0x14, 0x24); //QVGA(320*120)
-    while (i == 1)
-        i += LPLD_SCCB_WriteReg(0x24, 0x20); //è¿ç»­é‡‡é›†æ¨¡å¼(320*240)
-    while (i == 2)
-        i += LPLD_SCCB_WriteReg(0x70, 0xc1); //é©±åŠ¨ç”µæµå¢åŠ ä¸€å€
-    while (i == 3)
-        i += LPLD_SCCB_WriteReg(0x06, 0xa0); //äº®åº¦æ§åˆ¶
+    while(i == 0)
+      i += LPLD_SCCB_WriteReg(0x14, 0x24); //QVGA(320*120)
+    while(i == 1)
+      i += LPLD_SCCB_WriteReg(0x24, 0x20); //Á¬Ğø²É¼¯Ä£Ê½(320*240)
+    while(i == 2)
+      i += LPLD_SCCB_WriteReg(0x70, 0xc1); //Çı¶¯µçÁ÷Ôö¼ÓÒ»±¶
+    while(i == 3)
+      i += LPLD_SCCB_WriteReg(0x06, 0xa0); //ÁÁ¶È¿ØÖÆ
 }
 
-void CAMERA_Processing(void) {
-    int16_t lp1, lp2; //ç¬¬0è¡Œæ—¶ï¼Œlp1,lp2ä»ä¸Šä¸€æ¬¡çš„çº¿çš„ç¬¬é›¶è¡Œå¼€å§‹æ‰«æ
-    int16_t lp3, lp4;
-    uint8_t CurL = 0;
-    //æŒ‡å‘å½“å‰çš„å¤„ç†çš„è¡Œ
-    uint8_t LastL = 0;            //ä¸Šä¸€è¡Œ
-    uint8_t LastR = 0;
-    uint8_t isLeftEdge = 0;       //æ˜¯å¦çœ‹åˆ°å·¦å³è¾¹ç•Œ
-    uint8_t isRightEdge = 0;      //æ˜¯å¦çœ‹åˆ°å·¦å³è¾¹ç•Œ
-    uint8_t *p;
-    uint8_t BlackcntL = 0;      //è®°å½•å‡ºç°å‡ ä¸ªé»‘ç‚¹
-    uint8_t BlackcntR = 0;
-    uint8_t LRightEdge, LLeftEdge;
-    uint8_t i = 0, j = 0;
-    uint8_t xx = 0;
+void CAMERA_Processing(void)
+{
+    int16_t lp1, lp2;        //µÚ0ĞĞÊ±£¬lp1,lp2´ÓÉÏÒ»´ÎµÄÏßµÄµÚÁãĞĞ¿ªÊ¼É¨Ãè
+    int16_t lp3, lp4;        //
+    uint8_t cur_row = 0;     //Ö¸Ïòµ±Ç°µÄ´¦ÀíµÄĞĞ
+    uint8_t pre_row = 0;     //Ö¸ÏòÉÏÒ»¸ö´¦ÀíµÄĞĞ
+    uint8_t is_l_edge = 0;   //ÊÇ·ñ¿´µ½×ó±ß½ç
+    uint8_t is_r_edge = 0;   //ÊÇ·ñ¿´µ½ÓÒ±ß½ç
+    uint8_t l_black_cnt = 0; //¼ÇÂ¼×ó±ß³öÏÖ¼¸¸öºÚµã
+    uint8_t r_black_cnt = 0; //¼ÇÂ¼ÓÒ±ß³öÏÖ¼¸¸öºÚµã
+    uint8_t row_l_edge;      //¼ÇÂ¼µ±Ç°ĞĞµÄ×ó±ß½ç
+    uint8_t row_r_edge;      //¼ÇÂ¼µ±Ç°ĞĞµÄÓÒ±ß½ç
+    uint8_t *p;              //
+    uint8_t i = 0, j = 0;    //
+    uint8_t xx = 0;          //
 
-    PCout(18) = 1;
+    PCout(18) = 1; // ¿ªÊ¼´¦Àí£¬LEDµãÁÁ
 
-    if (Lx[L_Start[0]] != CAMERA_COL && Lx[L_Start[0]] != 0 && L_Start[0] < 15)     //å‰åäº”è¡Œæœ‰éç©ºå·¦çº¿èµ·ç‚¹
+    // ¶ÔÓÚµ±Ç°Í¼Ïñ£¬ÈüµÀÔ¶¶Ë×ó²àÊÇ×ø±êÔ­µã
+    
+    // É¨Ãè×ó±ß½çÏß
+    if (l_line_index[0] != CAMERA_COL && l_line_index[0] != 0)     //Ç°Ê®ÎåĞĞÓĞ·Ç¿Õ×óÏßÆğµã
     {
-        lp1 = (Lx[L_Start[0]] > 1 + offset[L_Start[0]]) ? Lx[L_Start[0]] - offset[L_Start[0]] : 1;
+        lp1 = (l_line_index[0] > 1 + offset[0]) ? l_line_index[0] - offset[0] : 1;
         lp2 = lp1 + P_WIDTH;
-    } else  //å‰ä¸€åŠéƒ½æ²¡æœ‰æ‰¾åˆ°å‚è€ƒå€¼
+    }
+    else  //Ç°Ò»°ë¶¼Ã»ÓĞÕÒµ½²Î¿¼Öµ
     {
-        if (Rx[R_Start[0]] != 0 && R_Start[0] < 15) {
-            lp1 = ((int16_t)((int16_t) Rx[R_Start[0]] + (int16_t) offset[R_Start[0]]) > CAMERA_COL - P_WIDTH - 10) ?
-                  CAMERA_COL - P_WIDTH - 10 : Rx[R_Start[0]] + offset[R_Start[0]];
+        if (r_line_index[0] != 0 && 0 < 15)
+        {
+            lp1 = ((int16_t)((int16_t)r_line_index[0] + (int16_t)offset[0])>CAMERA_COL - P_WIDTH - 10) ? CAMERA_COL - P_WIDTH - 10 : r_line_index[0] + offset[0];
             lp2 = lp1 + P_WIDTH;
-        } else {
+        }
+        else
+        {
             lp1 = CAMERA_CENTER;
             lp2 = lp1 + P_WIDTH;
         }
     }
-    if (Rx[R_Start[0]] != 0 && R_Start[0] < 15) {
-        lp3 = ((int16_t)((int16_t) Rx[R_Start[0]] + (int16_t) offset[R_Start[0]]) < CAMERA_COL - P_WIDTH - 5) ?
-              Rx[R_Start[0]] + offset[R_Start[0]] : CAMERA_COL - P_WIDTH - 5;
-        lp4 = lp3 + P_WIDTH;
-    } else  //å¦‚æœå‰é¢ä¸€ç›´æ²¡æœ‰æ‰¾åˆ°è¾¹ï¼Œé‚£ä¹ˆå°±ä¾ç…§æ‰¾åˆ°çš„å·¦çº¿çš„ä½ç½®æ¨æµ‹lp1,lp2ä½ç½®
+
+    // É¨ÃèÓÒ±ß½çÏß
+    if (r_line_index[0] != 0 && 0<15)
     {
-        if (Lx[L_Start[0]] != CAMERA_COL && L_Start[0] < 15) {
-            lp3 = (Lx[L_Start[0]] > 5 + offset[L_Start[0]]) ? Lx[L_Start[0]] - offset[L_Start[0]] : 5;
+        lp3 = ((int16_t)((int16_t)r_line_index[0] + (int16_t)offset[0])<CAMERA_COL - P_WIDTH - 5) ? r_line_index[0] + offset[0] : CAMERA_COL - P_WIDTH - 5;
+        lp4 = lp3 + P_WIDTH;
+    }
+    else  //Èç¹ûÇ°ÃæÒ»Ö±Ã»ÓĞÕÒµ½±ß£¬ÄÇÃ´¾ÍÒÀÕÕÕÒµ½µÄ×óÏßµÄÎ»ÖÃÍÆ²âlp1,lp2Î»ÖÃ
+    {
+        if (l_line_index[0] != CAMERA_COL&&0<15)
+        {
+            lp3 = (l_line_index[0]>5 + offset[0]) ? l_line_index[0] - offset[0] : 5;
             lp4 = lp3 + P_WIDTH;
-        } else {
+        }
+        else
+        {
             lp3 = CAMERA_CENTER;
             lp4 = lp3 + P_WIDTH;
         }
     }
-    for (CurL = 0; CurL < CAMERA_ROW; CurL++) {
-        p = imgadd + CurL * CAMERA_COL;                                                            //æŒ‡å‘å½“å‰è¡Œ
-        if (CurL > 0) {                                                                        //ç¡®å®šå·¦å³çº¿æ‰«æèµ·ç‚¹
-            LastL = CurL - 1;                                                           //Lx[]=CAMERA_COLè¡¨ç¤ºæ²¡æœ‰æ‰¾åˆ°å·¦é»‘çº¿
-            while (LastL > 0 && CurL - LastL < 5 && Lx[LastL] == CAMERA_COL)LastL--;
-            if (Lx[LastL] != CAMERA_COL)                                                   //åœ¨æœ¬è¡Œå‰äº”è¡Œæ‰¾åˆ°ä¸Šä¸€ä¸ªçº¿ä¸­å¿ƒ
+
+    // 
+    for (cur_row = 0; cur_row<CAMERA_ROW; cur_row++)
+    {
+        p = imgaddr + cur_row * CAMERA_COL;                                                            //Ö¸Ïòµ±Ç°ĞĞ
+
+        if (cur_row>0)
+        {
+            //È·¶¨×óÏßÉ¨ÃèÆğµã  
+            pre_row = cur_row - 1;                                                           //l_line_index[]=CAMERA_COL±íÊ¾Ã»ÓĞÕÒµ½×óºÚÏß
+            
+            while (pre_row>0 && cur_row - pre_row<5 && l_line_index[pre_row] == CAMERA_COL) pre_row--;
+            
+            if (l_line_index[pre_row] != CAMERA_COL)                                                   //ÔÚ±¾ĞĞÇ°ÎåĞĞÕÒµ½ÉÏÒ»¸öÏßÖĞĞÄ
             {
-                if (Lx[LastL] > offset[LastL]) {
-                    if (Rx[CurL - 1] != 0 &&
-                        Lx[LastL] - offset[LastL] < Rx[CurL - 1] + 5)            //å¦‚æœæ‰«çº¿å¼€å§‹ç‚¹åœ¨ä¸Šä¸€è¡Œå³çº¿çš„å³è¾¹ åˆ™ä»¥ä¸Šä¸€è¡Œçš„å³çº¿ä½œä¸ºæ‰«çº¿å¼€å§‹
-                        lp1 = Rx[CurL - 1] + 5;
-                    else {
-                        lp1 = Lx[LastL] - (offset[LastL] / 3);                                        //éœ€ä¿®æ”¹
-                    }
-                } else {
-                    if (Rx[CurL - 1] != 0 && Rx[CurL - 1] + 5 < CAMERA_COL - P_WIDTH)
-                        lp1 = Rx[CurL - 1] + 5;
+                if (l_line_index[pre_row]>offset[pre_row])
+                    if (r_line_index[cur_row - 1] != 0 && l_line_index[pre_row] - offset[pre_row]<r_line_index[cur_row - 1] + 5)            //Èç¹ûÉ¨Ïß¿ªÊ¼µãÔÚÉÏÒ»ĞĞÓÒÏßµÄÓÒ±ß ÔòÒÔÉÏÒ»ĞĞµÄÓÒÏß×÷ÎªÉ¨Ïß¿ªÊ¼
+                        lp1 = r_line_index[cur_row - 1] + 5;
+                    else
+                        lp1 = l_line_index[pre_row]-(offset[pre_row]*9/24);                                        //ĞèĞŞ¸Ä
+                else
+                    if (r_line_index[cur_row - 1] != 0 && r_line_index[cur_row - 1] + 5<CAMERA_COL - P_WIDTH)
+                        lp1 = r_line_index[cur_row - 1] + 5;
                     else
                         lp1 = 1;
-                }
                 lp2 = lp1 + P_WIDTH;
-            } else                                             //å‰é¢ä¸€ç›´æ— å¯æœå¯»åˆ°çš„å·¦çº¿
+            }
+            else                                             //Ç°ÃæÒ»Ö±ÎŞ¿ÉËÑÑ°µ½µÄ×óÏß 
             {
-                if (Rx[CurL - 1] != 0)                  //é‚£ä¹ˆå¦‚æœç¬¬é›¶è¡Œæ˜¯ç”¨å³çº¿ç¡®å®šçš„ï¼Œåˆ™ç”¨å³çº¿çš„æ¨å‡ºæ¥å€¼
+                if (r_line_index[cur_row - 1] != 0)                  //ÄÇÃ´Èç¹ûµÚÁãĞĞÊÇÓÃÓÒÏßÈ·¶¨µÄ£¬ÔòÓÃÓÒÏßµÄÍÆ³öÀ´Öµ
                 {
-                    lp1 = ((int16_t)((int16_t) Rx[CurL - 1] + 5) > CAMERA_COL - P_WIDTH - 10) ? CAMERA_COL - P_WIDTH - 10 :
-                          Rx[CurL - 1] + 5;
+                    lp1 = ((int16_t)((int16_t)r_line_index[cur_row - 1] + 5)>CAMERA_COL - P_WIDTH - 10) ? CAMERA_COL - P_WIDTH - 10 : r_line_index[cur_row - 1] + 5;
                     lp2 = lp1 + P_WIDTH;
-                } else {
+                }
+                else
+                {
                     lp1 = CAMERA_CENTER;
                     lp2 = lp1 + P_WIDTH;
                 }
             }
-            //ç¡®å®šæ–¹å‘å³çº¿æ‰«æèµ·ç‚¹
-            LastR = CurL - 1;
-            while (LastR > 0 && CurL - LastR < 5 && Rx[LastR] == 0)LastR--;     //LastLä¸­è®°å½•ç¬¬ä¸€ä¸ªæ‰¾åˆ°çš„æœ‰æ•ˆå·¦é»‘çº¿ä¸­å¿ƒæ‰€åœ¨è¡Œæ•°
-            if (Rx[LastR] != 0)                                             //æ‰¾åˆ°ä¸Šä¸€ä¸ªå³çº¿ä¸­å¿ƒ
+            
+            //È·¶¨ÓÒÏßÉ¨ÃèÆğµã
+            pre_row = cur_row - 1;
+            
+            while (pre_row>0 && cur_row - pre_row<5 && r_line_index[pre_row] == 0) pre_row--;     //pre_rowÖĞ¼ÇÂ¼µÚÒ»¸öÕÒµ½µÄÓĞĞ§×óºÚÏßÖĞĞÄËùÔÚĞĞÊı
+                 
+            if (r_line_index[pre_row] != 0)                                             //ÕÒµ½ÉÏÒ»¸öÓÒÏßÖĞĞÄ
             {
-                if ((int16_t)((int16_t) Rx[LastR] + (int16_t) offset[LastR]) < CAMERA_COL - P_WIDTH - 5) {
-                    if (Lx[CurL - 1] != CAMERA_COL && (int16_t)(Rx[LastR] + offset[LastR]) > (int16_t)(
-                            Lx[CurL - 1] - P_WIDTH - 5))              //å¦‚æœæ‰«çº¿å¼€å§‹ç‚¹åœ¨ä¸Šä¸€è¡Œå·¦çº¿çš„å·¦è¾¹ åˆ™ä»¥ä¸Šä¸€è¡Œçš„å·¦çº¿ä½œä¸ºæ‰«çº¿å¼€å§‹
-                        lp3 = Lx[CurL - 1] - P_WIDTH - 5;
-                    else {
-                        lp3 = Rx[LastR];                                        //éœ€ä¿®æ”¹
-                    }
-                } else {
-                    if (Lx[CurL - 1] == CAMERA_COL) {
+                if ((int16_t)((int16_t)r_line_index[pre_row] + (int16_t)offset[pre_row])<CAMERA_COL - P_WIDTH - 5)
+                    if (l_line_index[cur_row - 1] != CAMERA_COL && (int16_t)(r_line_index[pre_row] + offset[pre_row])>(int16_t)(l_line_index[cur_row - 1] - P_WIDTH - 5))              //Èç¹ûÉ¨Ïß¿ªÊ¼µãÔÚÉÏÒ»ĞĞ×óÏßµÄ×ó±ß ÔòÒÔÉÏÒ»ĞĞµÄ×óÏß×÷ÎªÉ¨Ïß¿ªÊ¼
+                        lp3 = l_line_index[cur_row - 1] - P_WIDTH - 5;
+                    else
+                        lp3 = r_line_index[pre_row];                                          //ĞèĞŞ¸Ä
+                else
+                    if (l_line_index[cur_row - 1] == CAMERA_COL)
                         lp3 = CAMERA_COL - P_WIDTH - 5;
-                    } else if (Lx[CurL - 1] > 5 + P_WIDTH)lp3 = Lx[CurL - 1] - P_WIDTH - 5;
-                    else lp3 = CAMERA_CENTER;
-                }
+                    else if (l_line_index[cur_row - 1]>5 + P_WIDTH)
+                        lp3 = l_line_index[cur_row - 1] - P_WIDTH - 5;
+                    else 
+                        lp3 = CAMERA_CENTER;
                 lp4 = lp3 + P_WIDTH;
-            } else //ä¹‹å‰ä¸€ç›´æ²¡æœ‰æ‰¾åˆ°å³çº¿
+            }
+            else //Ö®Ç°Ò»Ö±Ã»ÓĞÕÒµ½ÓÒÏß
             {
-                if (Lx[CurL - 1] != CAMERA_COL)//æŒ‰ç…§æœ¬è¡Œå·¦çº¿çš„ä½ç½® ç¡®å®šlp1 lp2
+                if (l_line_index[cur_row - 1] != CAMERA_COL)//°´ÕÕ±¾ĞĞ×óÏßµÄÎ»ÖÃ È·¶¨lp1 lp2
                 {
-                    lp3 = ((int16_t)(Lx[CurL - 1] > 5 + P_WIDTH + 5)) ? Lx[CurL - 1] - P_WIDTH - 5 : 5;
+                    lp3 = ((int16_t)(l_line_index[cur_row - 1]>5 + P_WIDTH + 5)) ? l_line_index[cur_row - 1] - P_WIDTH - 5 : 5;
                     lp4 = lp3 + P_WIDTH;
-                } else { //æœ¬è¡Œå·¦çº¿æ²¡æœ‰
+                }
+                else
+                { //±¾ĞĞ×óÏßÃ»ÓĞ
                     lp3 = CAMERA_CENTER;
                     lp4 = lp3 + P_WIDTH;
                 }
             }
-            //å·¦å³çº¿æ‰«çº¿å¼€å§‹
+            //×óÓÒÏßÉ¨Ïß¿ªÊ¼
         }
-        if (lp3 > 0) //æ‰¾å·¦å³è¾¹ç•Œ
+
+        if (lp3>0) //ÕÒ×óÓÒ±ß½ç
         {
-            //------æ‰¾çº¿å³è¾¹ç•Œ-------------------
-            while (lp3 > 0 && !isRightEdge) {
-                if ((int16_t)(*(p + lp4)) > BW_DELTA + (int16_t) * (p + lp3))     //åˆ©ç”¨æœ‰ç¬¦å·çš„æ¥æ¶ˆé™¤å™ªç‚¹
+            //------ÕÒÏßÓÒ±ß½ç-------------------
+            while (lp3>0 && !is_r_edge)
+            {
+                if ((int16_t)(*(p + lp4))>BW_DELTA + (int16_t)*(p + lp3))     //ÀûÓÃÓĞ·ûºÅµÄÀ´Ïû³ıÔëµã
                 {
-                    while ((int16_t)(*(p + lp4)) > BW_DELTA + (int16_t) * (p + lp3) && lp3 > 0) {
-                        if ((int16_t)(*(p + lp4)) < 255)BlackcntR++;
+                    while ((int16_t)(*(p + lp4))>BW_DELTA + (int16_t)*(p + lp3) && lp3>0)
+                    {
+                        if ((int16_t)(*(p + lp4))<255)
+                            r_black_cnt++;
                         lp3--;
                         lp4--;
-                        if (BlackcntR >= LINE_EDGE)break;
+                        if (r_black_cnt >= LINE_EDGE)
+                            break;
                     }
-                    if (BlackcntR >= LINE_EDGE) //åˆ¤æ–­æ‰¾åˆ°é»‘çº¿
+                    if (r_black_cnt >= LINE_EDGE) //ÅĞ¶ÏÕÒµ½ºÚÏß
                     {
-                        LRightEdge = lp3 + LINE_EDGE;
-                        BlackcntR = 0;
+                        row_r_edge = lp3 + LINE_EDGE;
+                        r_black_cnt = 0;
 
                         xx = 0;
-                        for (i = 0; i < 10; i++) {
-                            if (*(p + lp3 + LINE_EDGE + i) > THRESHOLD)xx++;
-                        }
+                        for (i = 0; i < 10; i++)
+                            if (*(p + lp3 + LINE_EDGE + i) > THRESHOLD)
+                        xx++;
+                        
                         if (xx > 6)
-                            isRightEdge = 1;
+                            is_r_edge = 1;
                         else
-                            BlackcntR = 0;
-                    } else {
-                        BlackcntR = 0;
+                            r_black_cnt = 0;
                     }
-                } else {
+                    else
+                        r_black_cnt = 0;
+                }
+                else
+                {
                     lp3--;
                     lp4--;
                 }
             }
         }
-        if (lp2 < CAMERA_COL)                    //æ‰¾å·¦å³è¾¹ç•Œ,ä»å†…å‘å¤–æ‰«æ
+          
+        if (lp2 < CAMERA_COL)                    //ÕÒ×óÓÒ±ß½ç,´ÓÄÚÏòÍâÉ¨Ãè
         {
-            //------æ‰¾çº¿å·¦è¾¹ç•Œ-------------------
-            while (lp2 < CAMERA_COL && !isLeftEdge)        //å½“lp2æ²¡æœ‰åˆ°è¾¾åˆ—çš„æœ€å¤§å€¼ç»§ç»­æ‰«æï¼Œå³æ‰«ææ¨¡å¼
+                  //------ÕÒÏß×ó±ß½ç-------------------
+            while (lp2<CAMERA_COL && !is_l_edge)        //µ±lp2Ã»ÓĞµ½´ïÁĞµÄ×î´óÖµ¼ÌĞøÉ¨Ãè£¬ÓÒÉ¨ÃèÄ£Ê½
             {
-                if (((int16_t)(*(p + lp1))) > BW_DELTA + (int16_t) * (p + lp2))           //
+                if (((int16_t)(*(p + lp1)))>BW_DELTA + (int16_t)*(p + lp2))           // 
                 {
-                    while ((int16_t)(*(p + lp1)) > BW_DELTA + (int16_t) * (p + lp2) && lp2 < CAMERA_COL) {
-                        if ((int16_t)(*(p + lp1)) < 255)BlackcntL++;
+                    while ((int16_t)(*(p + lp1))>BW_DELTA + (int16_t)*(p + lp2) && lp2<CAMERA_COL)
+                    {
+                        if ((int16_t)(*(p + lp1))<255)l_black_cnt++;
                         lp1++;
                         lp2++;
-                        if (BlackcntL >= LINE_EDGE)break;
+                        if (l_black_cnt >= LINE_EDGE)break;
                     }
-                    if (BlackcntL >= LINE_EDGE)           //æ‰¾åˆ°å·¦è¾¹ç•Œé€€å‡ºå¾ªç¯ï¼Œlp1å’Œlp2é—´éš”è®¾ä¸º1,
+                    
+                    if (l_black_cnt >= LINE_EDGE)           //ÕÒµ½×ó±ß½çÍË³öÑ­»·£¬lp1ºÍlp2¼ä¸ôÉèÎª1,                       
                     {
-                        LLeftEdge = lp2 - LINE_EDGE;
-                        BlackcntL = 0;
+                        row_l_edge = lp2 - LINE_EDGE;
+                        l_black_cnt = 0;
 
                         xx = 0;
-                        for (j = 0; j < 10; j++) {
-                            if (*(p + lp2 - LINE_EDGE - j) > THRESHOLD)xx++;
-                        }
-                        if (xx > 6)
-                            isLeftEdge = 1;
+                        for (j = 0; j < 10; j++)
+                            if (*(p + lp2 - LINE_EDGE - j)>THRESHOLD)
+                                xx++;
+
+                        if (xx>6)
+                            is_l_edge = 1;
                         else
-                            BlackcntL = 0;
-                    } else                  //é‡åˆ°å™ªç‚¹ï¼Œè®¡æ•°æ¸…é›¶
-                        BlackcntL = 0;
-                } else {
+                            l_black_cnt = 0;
+                    }
+                    else                  //Óöµ½Ôëµã£¬¼ÆÊıÇåÁã
+                        l_black_cnt = 0;
+                }
+                else
+                {
                     lp1++;
                     lp2++;
                 }
             }
         }
-        if (isLeftEdge) {
-            isLeftEdge = 0;
-            Lx[CurL] = LLeftEdge;
-        } else Lx[CurL] = CAMERA_COL;
-        if (isRightEdge) {
-            isRightEdge = 0;
-            Rx[CurL] = LRightEdge;
-        } else Rx[CurL] = 0;
+        
+        if (is_l_edge)
+        {
+            is_l_edge = 0;
+            l_line_index[cur_row] = row_l_edge;
+        }
+        else l_line_index[cur_row] = CAMERA_COL;
+        
+        if (is_r_edge){
+            is_r_edge = 0;
+            r_line_index[cur_row] = row_r_edge;
+        }
+        else r_line_index[cur_row] = 0;
     }
-
-    PCout(18) = 0; // ç»“æŸå¤„ç†ï¼ŒLEDå…³é—­
+    
+    PCout(18) = 0; // ½áÊø´¦Àí£¬LED¹Ø±Õ
 }
 
-void CAMERA_Display_Full(void) {
+void CAMERA_Display_Full(void)
+{
     int i, j;
-    // å°†å­—èŠ‚é€ä¸ªå†™å…¥å¹¶æ˜ å°„åˆ°OLEDä¸Š
-    for (i = 0; i < CAMERA_ROW; i++)
-        for (j = 0; j < CAMERA_COL; j++)
+    // ½«×Ö½ÚÖğ¸öĞ´Èë²¢Ó³Éäµ½OLEDÉÏ
+    for(i = 0; i < CAMERA_ROW; i++)
+        for(j = 0; j < CAMERA_COL; j++)
             OLED_DrawPoint(j * OLED_COL / CAMERA_COL, i, img1[i][j] > THRESHOLD);
-    // åˆ·æ–°OLEDä»¥æ˜¾ç¤ºå›¾åƒ
+    // Ë¢ĞÂOLEDÒÔÏÔÊ¾Í¼Ïñ
     OLED_Refresh_Gram();
 }
 
-void CAMERA_Display_Edge(void) {
+void CAMERA_Display_Edge(void)
+{
     int i;
-    // æ¸…ç©ºOLEDæ˜¾ç¤º
+    // Çå¿ÕOLEDÏÔÊ¾
     OLED_Fill(0, 0, 128, 50, 0);
-    // å°†å­—èŠ‚é€ä¸ªå†™å…¥å¹¶æ˜ å°„åˆ°OLEDä¸Š
-    for (i = 0; i < CAMERA_ROW; i++) {
-        if (Lx[i] > 0x00 && Lx[i] < CAMERA_COL)
-            OLED_DrawPoint(Lx[i] * OLED_COL / CAMERA_COL, i, 1); // å·¦è¾¹ç•Œ
-        if (Rx[i] > 0x00 && Rx[i] < CAMERA_COL)
-            OLED_DrawPoint(Rx[i] * OLED_COL / CAMERA_COL, i, 1); // å³è¾¹ç•Œ
+    // ½«×Ö½ÚÖğ¸öĞ´Èë²¢Ó³Éäµ½OLEDÉÏ
+    for(i = 0; i < CAMERA_ROW; i++)
+    {
+        if(l_line_index[i] > 0x00 && l_line_index[i] < CAMERA_COL)
+            OLED_DrawPoint(l_line_index[i] * OLED_COL / CAMERA_COL, i, 1); // ×ó±ß½ç
+        if(r_line_index[i] > 0x00 && r_line_index[i] < CAMERA_COL)
+            OLED_DrawPoint(r_line_index[i] * OLED_COL / CAMERA_COL, i, 1); // ÓÒ±ß½ç
     }
-    // åˆ·æ–°OLEDä»¥æ˜¾ç¤ºå›¾åƒ
+    // Ë¢ĞÂOLEDÒÔÏÔÊ¾Í¼Ïñ
     OLED_Refresh_Gram();
 }
 
-void CAMERA_UART_TX_Full(const uint32_t instance) {
+void CAMERA_UART_TX_Full(const uint32_t instance)
+{
     int i, j;
 
-    // ç¬¦åˆå±±å¤–å¤šåŠŸèƒ½è°ƒè¯•åŠ©æ‰‹ï¼Œèµ·å§‹å¸§ä¸º0x01 0xFE
+    // ·ûºÏÉ½Íâ¶à¹¦ÄÜµ÷ÊÔÖúÊÖ£¬ÆğÊ¼Ö¡Îª0x01 0xFE
     UART_WriteByte(instance, 0x01);
     UART_WriteByte(instance, 0xFE);
 
-    // é€ä¸ªå›¾åƒå­—èŠ‚è¿ç»­å‘é€
-    for (i = 0; i < CAMERA_ROW; i++)
-        for (j = 0; j < CAMERA_COL; j++)
+    // Öğ¸öÍ¼Ïñ×Ö½ÚÁ¬Ğø·¢ËÍ
+    for(i = 0; i < CAMERA_ROW; i++)
+        for(j = 0; j < CAMERA_COL; j++)
             UART_WriteByte(instance, img1[i][j]);
 
-    // ç¬¦åˆå±±å¤–å¤šåŠŸèƒ½è°ƒè¯•åŠ©æ‰‹ï¼Œç»“æŸå¸§ä¸º0xFE 0x01
+    // ·ûºÏÉ½Íâ¶à¹¦ÄÜµ÷ÊÔÖúÊÖ£¬½áÊøÖ¡Îª0xFE 0x01
     UART_WriteByte(instance, 0xFE);
     UART_WriteByte(instance, 0x01);
 }
 
-void CAMERA_UART_TX_Edge(const uint32_t instance) {
+void CAMERA_UART_TX_Edge(const uint32_t instance)
+{
     int i, j;
 
-    // ç¬¦åˆå±±å¤–å¤šåŠŸèƒ½è°ƒè¯•åŠ©æ‰‹ï¼Œèµ·å§‹å¸§ä¸º0x01 0xFE
+    // ·ûºÏÉ½Íâ¶à¹¦ÄÜµ÷ÊÔÖúÊÖ£¬ÆğÊ¼Ö¡Îª0x01 0xFE
     UART_WriteByte(instance, 0x01);
     UART_WriteByte(instance, 0xFE);
 
-    // é€ä¸ªå›¾åƒå­—èŠ‚è¿ç»­å‘é€
-    for (i = 0; i < CAMERA_ROW; i++)
-        for (j = 0; j < CAMERA_COL; j++)
-            if (j > 0x00 && j == Lx[i] || j < CAMERA_COL && j == Rx[i])
+    // Öğ¸öÍ¼Ïñ×Ö½ÚÁ¬Ğø·¢ËÍ
+    for(i = 0; i < CAMERA_ROW; i++)
+        for(j = 0; j < CAMERA_COL; j++)
+            if(j > 0x00 && j == l_line_index[i] || j < CAMERA_COL && j == r_line_index[i])
                 UART_WriteByte(instance, 0xFF);
             else
                 UART_WriteByte(instance, 0x00);
 
-    // ç¬¦åˆå±±å¤–å¤šåŠŸèƒ½è°ƒè¯•åŠ©æ‰‹ï¼Œç»“æŸå¸§ä¸º0xFE 0x01
+    // ·ûºÏÉ½Íâ¶à¹¦ÄÜµ÷ÊÔÖúÊÖ£¬½áÊøÖ¡Îª0xFE 0x01
     UART_WriteByte(instance, 0xFE);
     UART_WriteByte(instance, 0x01);
 }

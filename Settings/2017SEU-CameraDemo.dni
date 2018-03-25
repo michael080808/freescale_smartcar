@@ -20,7 +20,7 @@ Stop=1
 Freq=10000000
 MultiCoreRunAll=1
 [DebugChecksum]
-Checksum=-1058323623
+Checksum=-1674385628
 [CodeCoverage]
 Enabled=_ 0
 [Exceptions]
@@ -54,7 +54,6 @@ ITMportsLogFile=0
 ITMlogFile=$PROJ_DIR$\ITM.log
 [watch_formats]
 Fmt0={W}1:deltas[0]	3	0
-Fmt1={W}1:empty_mid	3	0
 [SWOTraceWindow]
 PcSampling=0
 InterruptLogs=0
@@ -117,13 +116,16 @@ mode=0
 [Breakpoints2]
 Count=0
 [Aliases]
-A0=_ "C:\Users\Michael\Desktop\2017SEU-Camera-MC 2018-03-05 10.50.00\2017SEU-CameraDemo\User\isr.c" ""
-A1=_ "E:\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Driver\src\spi.c" "C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Driver\src\spi.c"
-A2=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Device\IAR-ARM\startup_MK60D10.s" ""
-A3=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\dma.c" ""
-A4=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\ftm.c" ""
-A5=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\lptmr.c" "E:\2017SEU-201802261348-MC\2017SEU-CameraDemo\Libraries\Driver\src\lptmr.c"
-A6=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\uart.c" ""
-A7=_ "G:\智能车\2017SEU-CameraDemo\User\init.c" ""
-Count=8
+A0=_ "C:\Users\Administrator\Desktop\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\User\isr.c" ""
+A1=_ "C:\Users\Administrator\Desktop\最新代码\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Driver\src\pit.c" ""
+A2=_ "D:\最新代码\2017SEU-Camera-MC (2)\2017SEU-Camera-MC\2017SEU-CameraDemo\User\encoder.c" ""
+A3=_ "E:\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Driver\src\pit.c" ""
+A4=_ "E:\2017SEU-Camera-MC\2017SEU-CameraDemo\Libraries\Driver\src\spi.c" ""
+A5=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Device\IAR-ARM\startup_MK60D10.s" ""
+A6=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\dma.c" ""
+A7=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\ftm.c" ""
+A8=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\lptmr.c" "E:\2017SEU-201802261348-MC\2017SEU-CameraDemo\Libraries\Driver\src\lptmr.c"
+A9=_ "G:\智能车\2017SEU-CameraDemo\Libraries\Driver\src\uart.c" ""
+A10=_ "G:\智能车\2017SEU-CameraDemo\User\init.c" ""
+Count=11
 SuppressDialog=1

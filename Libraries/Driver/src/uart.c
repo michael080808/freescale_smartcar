@@ -389,7 +389,7 @@ void UART_SelectDebugInstance(uint32_t instance)
  * \attention 具体的UART资源依芯片而不同，请参见相应的引脚复用说明
  * \param[in] status enable or disable Tx FIFO
  *              \arg 0 disable
- *              \arg 1  enable
+ *              \arg 1  enable 
  * @retval None
  */
 void UART_EnableTxFIFO(uint32_t instance, bool status)

@@ -6,29 +6,25 @@
 #include "chlib_k.h"
 #include "encoder.h"
 
-#define SERVO_CENTER 778                            // 舵机直行中心值
-#define SERVO_LIMITS 180                            // 舵机行程限制值
+#define SERVO_CENTER     768			// 舵机直行中心值
+#define SERVO_LIMITS     200			// 舵机行程限制值
 
-#define SERVO_Kp 9                                  // 舵机比例
-#define SERVO_Ki 0                                  // 舵机积分
-#define SERVO_Kd -2.5                               // 舵机微分
+#define MOTOR_DELTA      0.003623		// 公差
 
-#define MOTOR_Kp 0.85                               // 电机比例
-#define MOTOR_Ki 0                                  // 电机积分
-#define MOTOR_Kd 0                                  // 电机微分
+#define MOTOR_SPEED_STR  250			// 直道理想速度
+#define MOTOR_SPEED_CUR  130			// 大弯道理想速度
+#define MOTOR_SPEED_SCUR 160			// 小弯道理想速度
 
-#define IMAGE_ROW_MIN 16                            // 图像处理行最小
-#define IMAGE_ROW_MAX 50                            // 图像处理行最大
+typedef union PID_PWM_UNION {
+	float   float32bits;
+	uint8_t int8bits[4];
+} PID_PWM_UNION;
 
-#define SPEED_MAX 20                                // 最大编码器脉冲
-#define SPEED_MID 15                                // 居中编码器脉冲
-#define SPEED_MIN 10                                // 最小编码器脉冲
+extern uint32_t pic_count;                              // 图像计数器
+extern int8_t standard[];				// 矫正数组
 
-#define MAX_PWM 2000                                // 限制最大PWM脉冲宽度
-
-extern uint32_t w[50];                              // 计算各个中线偏差的权重
-
-void PID_Controller(void);                          // PID控制函数
-void PID_UART_Tx_Oscillometer(uint32_t instance);   // PID结果显示
+void PID_Start_Detect();				// 启动停止线查找
+void PID_Stop_Detect();					// 关闭停止线查找5秒
+void PID_Controller();					// PID控制函数
 
 #endif
